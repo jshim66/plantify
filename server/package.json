@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "devStart": "nodemon --watch src --exec tsx src/app.ts"
+    "devStart": "nodemon --watch src --exec tsx src/server.ts"
   },
   "keywords": [],
   "author": "",
@@ -20,7 +20,7 @@
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/multer": "^2.1.0",
-    "@types/node": "^25.5.0",
+    "@types/node": "^25.4.0",
     "nodemon": "^3.1.14",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3"

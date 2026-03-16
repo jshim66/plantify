@@ -1,15 +1,18 @@
-import Express = require("express");
-const app = Express();
+import express = require("express");
+import multer = require("multer");
+const cors = require("cors");
 
-app.set('view engine', 'ejs');
+const app = express();
+
+app.use(cors());
+
 
 app.get("/", (req, res) => {
-    console.log("hi")
-    res.send("sup")
-})
+  console.log("hi");
+  res.send("sup");
+});
 
-const healthRoutes = require('./routes/health_routes');
+const healthRoutes = require("./routes/plant_routes");
+app.use("/api", healthRoutes);
 
-app.use('/api', healthRoutes);
-
-app.listen(4000);
+module.exports = app;
