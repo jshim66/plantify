@@ -14,6 +14,15 @@ router.get('/health', (req, res) => {
     res.send('Api Health')
 })
 
+function getMockPlantResult() {
+  return {
+    commonName: "Monstera",
+    scientificName: "Monstera deliciosa",
+    confidence: 0.5
+  };
+}
+
+
 router.post("/identify", upload.single("image"), async (req, res) => {
   try {
     if (!req.file) {
@@ -23,6 +32,17 @@ router.post("/identify", upload.single("image"), async (req, res) => {
       });
     }
 
+    const useMockPlantId = process.env.USE_MOCK_PLANT_ID === "true";
+
+    if (useMockPlantId){
+      console.log("Using mock plant result");
+
+      return res.status(200).json({
+        success: true,
+        result: getMockPlantResult()
+      });
+    }
+    
     const rawResult = await identifyPlant(req.file.buffer);
 
     console.log("Plant.id raw response:", rawResult);
@@ -61,21 +81,5 @@ router.post("/identify", upload.single("image"), async (req, res) => {
     });
   }
 });
-//Test one
-/*
-router.post('/identify', upload.single("image"), (req, res) => {
-  // Here you would handle the image upload and plant identification logic
-  console.log("Received image");
-  console.log(req.file);
-  res.status(200).json({
-    success: true,
-    result: {
-      commonName: "Monstera",
-      scientificName: "Monstera deliciosa",
-      confidence: 0.95
-    }
-  });
-})
-*/
 
 module.exports = router

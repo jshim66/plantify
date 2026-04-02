@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import "./UploadForm.css";
 
 type PlantResult = {
   commonName: string;
@@ -7,12 +8,14 @@ type PlantResult = {
 };
 
 type UploadFormProps = {
-  onIdentifySuccess: (result: PlantResult) => void;
+  onIdentifySuccess: (result: PlantResult, imageUrl: string) => void;
 };
 
 function UploadForm({ onIdentifySuccess }: UploadFormProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [errorMessage, setErrorMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false)
+  const [previewUrl, setPreviewUrl] = useState("");
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files ? event.target.files[0] : null;
@@ -20,6 +23,10 @@ function UploadForm({ onIdentifySuccess }: UploadFormProps) {
 
     if (file) {
       setErrorMessage("");
+      const objectUrl = URL.createObjectURL(file);
+      setPreviewUrl(objectUrl);
+    } else{
+      setPreviewUrl("")
     }
 
     console.log("File Selected:", file);
@@ -34,6 +41,7 @@ function UploadForm({ onIdentifySuccess }: UploadFormProps) {
     }
 
     setErrorMessage("");
+    setIsLoading(true);
     console.log("Button Clicked");
 
     const formData = new FormData();
@@ -51,11 +59,13 @@ function UploadForm({ onIdentifySuccess }: UploadFormProps) {
       const data = await response.json();
       console.log("Response from server:", data);
 
-      onIdentifySuccess(data.result);
+      onIdentifySuccess(data.result, previewUrl);
     } 
     catch (error) {
       console.error("Error uploading file:", error);
       setErrorMessage("Failed to upload image. Please try again.");
+    } finally{
+      setIsLoading(false)
     }
 
     // testForm();
@@ -63,29 +73,44 @@ function UploadForm({ onIdentifySuccess }: UploadFormProps) {
 
   useEffect(() => {
     console.log("SelectedFile state updated:", selectedFile);
-  }, [selectedFile]);
+    return () => {
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl]);
 
   return (
-    <section>
-      <input type="file" accept="image/*" onChange={handleFileChange} />
+    <section className="upload-form">
+      <div className="upload-controls">
+        <label htmlFor="plant-image-upload" className={`file-upload-button ${isLoading ? "file-upload-button-disabled" : ""}`}>
+          Select File
+        </label>
+        <input id="plant-image-upload" type="file" accept="image/*" onChange={handleFileChange} disabled={isLoading} className="file-upload-input"/>
 
-      <button
-        type="button"
-        onClick={handleClick}
-        style={{
-          marginTop: "12px",
-          padding: "10px 16px",
-          borderRadius: "6px",
-          border: errorMessage ? "2px solid red" : "1px solid #ccc",
-          outline: "none",
-          backgroundColor: selectedFile ? "#4f46e5" : "#9ca3af",
-          color: "white",
-          cursor: selectedFile ? "pointer" : "not-allowed"
-        }}
-      >
-        Identify Plant
-      </button>
+      
+        <button
+          type="button"
+          onClick={handleClick}
+          disabled={isLoading}
+          className={`identify-button ${errorMessage ? "identify-button-error": ""}`}
+        >
+        {isLoading ? "Identifying plant..." : "Identify Plant"}
+        </button>
+      </div>
+      
+       {previewUrl && (
+        <div className = "upload-preview-wrapper">
+          <img src = {previewUrl} alt ="Selected preview" className="upload-preview-image"/>
+        
 
+          {selectedFile && (
+            <p className="selected-file-name">
+              {selectedFile.name}
+            </p>
+          )}
+        </div>
+      )}
       {errorMessage && (
         <p style={{ color: "red", marginTop: "8px" }}>
           {errorMessage}
